@@ -1,0 +1,19 @@
+name: document-checker
+
+services:
+  database:
+    image: mariadb:10.6
+    environment:
+      - MARIADB_ROOT_PASSWORD=${DB_ROOT_PASSWORD}
+    volumes:
+      - ./api-db:/docker-entrypoint-initdb.d:ro
+      - api-db-data:/var/lib/mysql
+  api:
+    build: ./id-api
+    ports:
+      - 5001:4242
+    depends_on:
+      - database
+
+volumes:
+  api-db-data:

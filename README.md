@@ -17,23 +17,28 @@ A RESTful API is a web service that utilise the HTTP protocol methods to provide
 an idiomatic interface for transferring states from client to server and
 vice versa.
 
-In this little project, I present a simple API that verifies whether a
-Brazilian CPF is valid or not, and when the document sent is not a valid CPF,
-the API will also include a reason description.
+In the previous version, the API consisted of a single POST endpoint for sending
+documents to be validated, and receiving their validation description and
+status. In this iteration, the API is connected to a database in order to log
+all document validation requests, and provide a new GET endpoint for reading all
+the document validation requests made.
 
 ## Structure and Design
 
-Despite the project's simplicity, I have decided to make good use of the best
-practises of software development, which includes:
+Since the addition of a database to the system, there was a need for clearly
+defining the system's services:
 
-* **Code Modularisation**
-* **Development Environment Isolation (Docker)**
-* **Unit Tests**
+* Database Service;
+* API
 
-I have used C++ along with [Crow Microframework](https://crowcpp.org/master/)
-for the overall HTTP connection handling. The main reason of why I have chosen
-C++ as the main language is because it is a language that I am more proficient
-at.
+The approach taken to organise the source code was to define all the system's
+services as containers in a docker compose file. What once took a few keystrokes
+for setting up the environment, has been reduced to a single docker compose
+command.
+
+```sh
+docker compose up
+```
 
 ## Endpoints
 
@@ -52,32 +57,46 @@ at.
     }
     ```
 
+* **GET /records/<int>** - Retrieve all documents that have been validated by the API
+
+    ```json
+    {
+        "records": [
+            {
+             "document": "xxxxxxxxxxx",
+             "valid": false
+            }
+            ...
+        ]
+    }
+    ```
+
 ## What I have learned so far and what I still want to learn
 
-* In the same as it is with code, the endpoints, and their methods should expose
-the behaviour by itself, this can be done by using the appropriate
-**Status Codes** and **HTTP Methods (i.e., GET, POST, PATCH, DELETE)**;
+* I have learned the importance of having a well-defined development
+environment. Packaging the API as a collection of docker containers made
+testing and deploying the system easier;
 
-* There must be some way of writing automated tests for the API itself.
-Currently, I am only testing the services the API offer, but I am not testing
-for any Status code or specific output from the API;
+* I have also learned the basics of database-api communication.
 
-* Connect an actual database to the API, and make a slightly complex system;
+* The current environment configuration is sufficient, but it can be improved.
+The first thing to improve is how the project deal with secrets, and this can
+be seem in how the API database user is defined in the schema (see api-db)
 
-* Deploy the API into a docker container
+* The idea of having an endpoint that reads all the information is interesting,
+however, not everyone should be able to read this sort of information.
+Therefore, there must be a way of **authenticating** API users before letting
+them access the endpoints.
 
 ## Building and Running
 
-The following instructions assume a Debian-based operating system, but due to
-the project's simplicity, porting for other operating systems is as easy as
-typing out some commands. However, make sure that the essentials such as
-compilers, build systems, and git are installed before proceding.
+Given the new structure, the easiest way of building this project is by
+installing it in a container via docker compose. Before building,
+**define a .env file containing the database's ROOT password**:
 
-### Dependencies
-
-* libasio-dev
-* Crow (built-in)
-* Catch2 (built-in)
+```env
+DB_ROOT_PASSWORD=your-password-here
+```
 
 ### Instructions
 
@@ -88,34 +107,23 @@ compilers, build systems, and git are installed before proceding.
     git clone https://github.com/smolBlackCat/smolblackcat-learns-api.git
     ```
 
-2. Configure the project
+2. Build the containers
 
     ```sh
-    # Platform independent. Make sure you have git installed
-    cd smolblackcat-learns-api/
-    mkdir build
-    # Add -DENABLE_TEST=ON in case you want to run the tests
-    cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+    # Run the system in detached mode
+    docker compose up -d
     ```
 
-3. Build
+All done, the api will be listening at `0.0.0.0:5001`.
 
-    ```sh
-    cmake --build build
-    ```
-
-4. Run
-
-    ```sh
-    build/gov-api
-    ```
 ### Demonstration
 
 ![](docs/assets/api-call.png)
 
-![](docs/assets/api-call-error.png)
+![](docs/assets/api-call-2.png)
 
 ## Next Steps
 
-1. Integrate a relational database (which it will require database design)
-2. Configure a docker image
+1. Study the architecture for API and database communication
+2. Automate API testing
+3. Implement authentication

@@ -17,6 +17,16 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(crow)
 
+# MariaDB C++ Connector
+option(WITH_UNIT_TESTS OFF)
+FetchContent_Declare(
+	mariadb
+	GIT_REPOSITORY https://github.com/mariadb-corporation/mariadb-connector-cpp.git
+	GIT_TAG 1.1.9
+)
+
+FetchContent_MakeAvailable(mariadb)
+
 if(ENABLE_TEST)
 	include(CTest)
 	FetchContent_Declare(
@@ -33,5 +43,11 @@ endif()
 
 # Main API
 add_executable(gov-api src/main.cpp src/services.cpp)
-target_include_directories(gov-api PRIVATE include/)
+target_include_directories(gov-api PRIVATE ${PROJECT_SOURCE_DIR}/include)
+target_include_directories(gov-api PRIVATE ${mariadb_SOURCE_DIR}/include)
 target_link_libraries(gov-api PRIVATE Crow::Crow)
+target_link_libraries(gov-api PRIVATE mariadbcpp-static)
+
+add_executable(database-connection test/database-connection.cpp)
+target_include_directories(database-connection PRIVATE ${mariadb_SOURCE_DIR}/include)
+target_link_libraries(database-connection PRIVATE mariadbcpp-static)

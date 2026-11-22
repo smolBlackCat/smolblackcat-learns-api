@@ -33,6 +33,8 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
         python3-pip \
         # Dependencies
         libasio-dev \
+        libmariadb-dev \
+        libgnutls28-dev  \  
     && rm -rf /var/lib/apt/lists/*
 
 RUN useradd cat-dev
