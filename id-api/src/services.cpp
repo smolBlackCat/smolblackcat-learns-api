@@ -1,5 +1,7 @@
 #include <services.h>
 
+#include <algorithm>
+#include <cctype> 
 #include <string>
 #include <utility>
 
@@ -20,6 +22,17 @@ std::pair<bool, std::string> validate_document(const std::string& document) {
     if (document.empty()) {
         return {false, "Empty Field"};
     }
+
+    document.erase(
+        std::remove_if(
+            std::begin(document),
+            std::end(document),
+            [](unsigned char c) {
+                return !std::isdigit(c);
+            }
+        ),
+        std::end(document)
+    );
 
     if (document.size() != 11 || !is_numeric(document)) {
         return {false, "Does not represent a CPF"};
